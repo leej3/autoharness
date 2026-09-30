@@ -5,7 +5,7 @@ import sys
 
 RUNTIME = (
     "autoharness-native @ git+https://github.com/leej3/autoharness.git"
-    "@b6ba9173cf85e654250b0f6302fa71859dbc27e3"
+    "@d0adb868f3c9f53f4c8d82ff725a953104488ce6"
 )
 
 
