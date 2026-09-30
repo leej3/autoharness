@@ -1,0 +1,8 @@
+name: autoharness-native-skills
+version: 0.1.0
+description: Native agent reflection using the AutoHarness validation core.
+type: skill
+includes:
+  - skills/autoharness-reflect
+targets:
+  - agent-skills
