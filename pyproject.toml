@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "autoharness-native"
+version = "0.5.3.dev1"
+description = "AutoHarness skill maintenance with native agent orchestration"
+requires-python = ">=3.11"
+license = "MIT"
+license-files = ["LICENSE"]
+
+[project.scripts]
+autoharness-native = "autoharness.native:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+"autoharness.lib" = ["*.toml", "*.md"]
