@@ -16,6 +16,7 @@ def test_native_round_trip(tmp_path, capsys):
     status, prepared = invoke(tmp_path, capsys, "prepare", "--input", str(evidence))
     assert status == 0
     assert "Repeated ISO" in prepared["bundle"]
+    assert "# Active runtime limits" in prepared["bundle"]
     assert "action" in prepared["intent_schema"]["required"]
     proposal = tmp_path / "proposal.json"
     proposal.write_text(json.dumps({
