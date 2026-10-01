@@ -5,8 +5,8 @@ The host supplies evidence and proposals; existing AutoHarness code owns validat
 """
 import argparse
 import json
-from pathlib import Path
 import sys
+from pathlib import Path
 
 from autoharness import config
 from autoharness.hook import promoter, spawn

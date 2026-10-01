@@ -1,0 +1,72 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "AutoHarness concise completion report v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "usages"
+  ],
+  "properties": {
+    "usages": {
+      "type": "array",
+      "maxItems": 100,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "skill",
+          "purpose",
+          "outcome",
+          "reflection"
+        ],
+        "properties": {
+          "skill": {
+            "type": "string",
+            "pattern": "^[a-zA-Z0-9][a-zA-Z0-9._:-]{0,119}$"
+          },
+          "purpose": {
+            "type": "string",
+            "pattern": "^[a-zA-Z0-9][a-zA-Z0-9._:-]{0,119}$"
+          },
+          "outcome": {
+            "enum": [
+              "success",
+              "partial",
+              "failure",
+              "abandoned",
+              "unknown"
+            ]
+          },
+          "reflection": {
+            "enum": [
+              "none",
+              "needed",
+              "unknown"
+            ]
+          },
+          "skill_duration_seconds": {
+            "type": "number",
+            "minimum": 0
+          },
+          "friction": {
+            "enum": [
+              "none",
+              "instructions",
+              "tooling",
+              "missing-context",
+              "other"
+            ]
+          },
+          "correction_count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "feedback_id": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      }
+    }
+  }
+}
