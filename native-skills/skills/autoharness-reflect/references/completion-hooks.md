@@ -24,9 +24,7 @@ Do not replace all hooks with an old backup if other handlers changed meanwhile.
   Reads in earlier turns, indirect paths, and some tool paths will not be detected.
   No tool arguments or responses are retained.
 - Stop appends one turn observation.
-  With candidates, it requests at most one native continuation for the agent to confirm material use and record a concise report.
-  It skips plan-mode continuations, prior Stop continuations, and routine recorder/reflection bookkeeping.
-  The agent honors user opt-outs and stop requests.
+  Successful collection emits no output and never requests an agent continuation.
 - Interrupt records the interrupted turn without requesting reflection.
 
 Stop means a turn ended, not that the user's task succeeded.
@@ -34,8 +32,11 @@ Host observations therefore have unknown outcome.
 Turn wall time includes tool waits and is not per-skill execution time.
 Missing start events produce null duration.
 
-A normal successful use requires only a report, with no qualitative narrative.
-An exceptional reusable lesson can trigger `autoharness-reflect` in the native agent; collection itself does not authorize changing a skill or publishing.
+Confirmed usage reports remain available through the `report` command during ordinary task work; the hook does not ask for them.
+Candidate observations remain unconfirmed unless an agent supplies a report.
+Collection failure emits one concise `systemMessage` warning for that invocation, without restarting the agent or blocking task completion.
+Routine success emits neither a warning nor a chat prompt.
+Reflection is selected separately during task work; collection itself does not authorize changing a skill or publishing.
 The hook does not spawn a separate CLI agent or invoke an API model.
 
 ## Schemas and storage
@@ -62,7 +63,7 @@ No retention cleanup is automatic.
 ## What to assess during the trial
 
 Compare candidate turns with confirmed uses and rejected candidates.
-Note missed implicit uses and whether the extra continuation is useful or intrusive.
+Note missed implicit uses and whether collection remains unobtrusive.
 Outcome, friction, and correction counts are agent assertions, not independent grading.
 
 This trial does not infer token cost, exact skill activation, per-skill timing, human satisfaction, or causal improvement.

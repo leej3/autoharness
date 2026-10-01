@@ -1,5 +1,8 @@
 import importlib.util
 import json
+import os
+import subprocess
+import sys
 from pathlib import Path
 
 import pytest
@@ -24,10 +27,10 @@ def observe(root):
     completion.handle(tool, root, now=13)
 
 
-def test_completion_continues_once_and_does_not_claim_usage(tmp_path):
+def test_completion_is_quiet_and_does_not_claim_usage(tmp_path):
     observe(tmp_path)
     first = completion.handle(event('Stop', model='test-model'), tmp_path, now=20)
-    assert first['decision'] == 'block'
+    assert first == {}
     assert completion.handle(event('Stop'), tmp_path, now=21) == {}
     records = [json.loads(x) for x in (tmp_path / 'observations.jsonl').read_text().splitlines()]
     assert len(records) == 1
@@ -103,3 +106,31 @@ def test_status_deduplicates_crash_retries(tmp_path):
     assert out['candidate_turns'] == 1
     assert out['empty_reports'] == 1
     assert out['confirmed_skill_uses'] == 0
+
+
+def test_hook_process_success_has_no_output(tmp_path):
+    env = {**os.environ, 'AUTOHARNESS_COMPLETION_STORE': str(tmp_path)}
+    for item in (event('UserPromptSubmit'),
+                 event('PostToolUse', tool_use_id='1', tool_name='Bash',
+                       tool_input={'command': 'cat /skills/duct/SKILL.md'}),
+                 event('Stop')):
+        result = subprocess.run([sys.executable, str(SKILL / 'scripts/completion.py'), 'hook'],
+                                input=json.dumps(item), text=True, capture_output=True, env=env)
+        assert result.returncode == 0
+        assert result.stdout == result.stderr == ''
+    assert completion.status(tmp_path)['candidate_turns'] == 1
+
+
+def test_hook_failure_warns_without_continuation_or_sensitive_details(tmp_path):
+    store = tmp_path / 'private-store'
+    store.write_text('not a directory')
+    result = subprocess.run([sys.executable, str(SKILL / 'scripts/completion.py'), 'hook'],
+                            input=json.dumps(event('Stop')), text=True, capture_output=True,
+                            env={**os.environ, 'AUTOHARNESS_COMPLETION_STORE': str(store)})
+    assert result.returncode == 0
+    warning = json.loads(result.stdout)
+    assert set(warning) == {'systemMessage'}
+    assert 'could not be saved' in warning['systemMessage']
+    assert 'Task completion is unaffected' in warning['systemMessage']
+    assert str(store) not in result.stdout
+    assert result.stderr == ''

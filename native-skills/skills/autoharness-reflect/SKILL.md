@@ -12,7 +12,7 @@ Routine task success alone does not justify creating a skill.
 Requires Python 3 and `uv` on PATH.
 The bundled [runner](scripts/run.py) fetches an immutable AutoHarness runtime into uv's cache, including its authoring rules; first use requires network access.
 The runner does not launch a model.
-Optional user-level completion hooks collect turn metadata and request one concise agent report; see [completion hooks](references/completion-hooks.md) for installation, activation, and interpretation.
+Optional user-level completion hooks silently collect turn metadata; see [completion hooks](references/completion-hooks.md) for installation, activation, and interpretation.
 The current host supplies reasoning and native subagents.
 
 ## Prepare and reflect
@@ -72,4 +72,5 @@ For existing human-authored or APM-installed skills, report the proposed source 
 Verify an applied change against a representative task and report the changed skill and evidence.
 Structural validation and usage counts do not prove benefit.
 Reflection runs when invoked or selected by the agent.
-When the separate completion hooks are installed and trusted, they can request this skill after a turn; candidate detection is incomplete and does not prove actual skill use.
+Completion hooks never restart the agent or request reflection.
+Candidate detection is incomplete and does not prove actual skill use.

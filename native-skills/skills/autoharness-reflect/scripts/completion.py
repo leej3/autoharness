@@ -61,7 +61,7 @@ def handle(event, root=None, now=None):
         path = root / (key + '.json')
         state = json.loads(path.read_text()) if path.exists() else {
             'started_at': None, 'tool_ids': [], 'tool_counts': {},
-            'candidates': [], 'prompted': False, 'closed': False,
+            'candidates': [], 'closed': False,
         }
         if kind == 'UserPromptSubmit':
             if not state['closed'] and state['started_at'] is None:
@@ -89,29 +89,6 @@ def handle(event, root=None, now=None):
                 }
                 append(root, record)
                 state['closed'] = True
-            if (kind == 'Stop' and state['candidates'] and not state['prompted']
-                    and not event.get('stop_hook_active') and event.get('permission_mode') != 'plan'):
-                state['prompted'] = True
-                save(path, state)  # persist before asking the host to continue
-                command = shlex.join([sys.executable, str(Path(__file__).resolve()), 'report',
-                                      '--session-id', session, '--turn-id', turn, '--input', 'REPORT.json'])
-                return {'decision': 'block', 'reason': (
-                    'AutoHarness completion check (one pass only). The hook observed candidate skill '
-                    'references, not confirmed use: ' + ', '.join(state['candidates']) + '. '
-                    'Respect any user opt-out, request to stop, or higher-priority task constraint. '
-                    'Do not ask routine feedback questions. If appropriate, save one JSON object with '
-                    'a usages array: each materially used skill has skill, purpose (short category), '
-                    'outcome (success|partial|failure|abandoned|unknown), and reflection '
-                    '(none|needed|unknown); optional fields are skill_duration_seconds, friction '
-                    '(none|instructions|tooling|missing-context|other), correction_count, and feedback_id. '
-                    'Use an empty usages array for reads/installations/bookkeeping only. Do not invent '
-                    'timing, success, or causal benefit. Record with ' + command + ' (replace REPORT.json '
-                    'with a temporary local file). Avoid duplicate Workshop baseline records; feedback_id '
-                    'may link an existing one. Only if an exceptional reusable lesson warrants it, use '
-                    '$autoharness-reflect to propose an improvement within the existing task scope. '
-                    'This hook does not authorize applying changes, publishing, or messaging. Finish '
-                    'without narrating routine collection; never repeat this check.'
-                )}
         save(path, state)
     return {}
 
@@ -229,12 +206,19 @@ def main():
             result = status()
         else:
             result = install(args.config, args.python)
-        print(json.dumps(result))
+        if args.command != 'hook' or result:
+            print(json.dumps(result))
         return 0
     except Exception as exc:
         # Collector failure must not prevent normal task completion.
-        print(json.dumps({} if args.command == 'hook' else {'ok': False, 'error': str(exc)}))
-        print('AutoHarness completion: ' + type(exc).__name__, file=sys.stderr)
+        if args.command == 'hook':
+            print(json.dumps({'systemMessage': (
+                'AutoHarness feedback could not be saved (' + type(exc).__name__
+                + '). Task completion is unaffected.'
+            )}))
+        else:
+            print(json.dumps({'ok': False, 'error': str(exc)}))
+            print('AutoHarness completion: ' + type(exc).__name__, file=sys.stderr)
         return 0 if args.command == 'hook' else 1
 
 
